@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Tic-Tac-Toe</title>
+    <style>
+        /* Similar styling as before */
+    </style>
+</head>
+<body>
+    <h1>Online Tic-Tac-Toe</h1>
+    <div id="gameHeader">
+        <span id="playerInfo"></span>
+        <button onclick="createGame()">Create Game</button>
+        <input type="text" id="gameIdInput" placeholder="Enter Game ID" />
+        <button onclick="joinGame()">Join Game</button>
+    </div>
+    <div id="gameBoard">
+        <!-- Same grid for cells, like in previous code -->
+    </div>
+    <div id="message"></div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        let gameId = null;
+        let player = null;
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const { action, move, player: currentPlayer } = data;
+
+            if (action === 'gameCreated') {
+                gameId = data.gameId;
+                player = data.player;
+                document.getElementById('playerInfo').innerText = `Game ID: ${gameId} - You are Player ${player}`;
+            } else if (action === 'gameJoined') {
+                gameId = data.gameId;
+                player = data.player;
+                document.getElementById('playerInfo').innerText = `Game ID: ${gameId} - You are Player ${player}`;
+            } else if (action === 'playerJoined') {
+                document.getElementById('message').innerText = 'Opponent joined. Start playing!';
+            } else if (action === 'moveMade') {
+                document.querySelectorAll('.cell')[move].innerText = currentPlayer;
+            }
+        };
+
+        function createGame() {
+            ws.send(JSON.stringify({ action: 'createGame' }));
+        }
+
+        function joinGame() {
+            const inputGameId = document.getElementById('gameIdInput').value;
+            ws.send(JSON.stringify({ action: 'joinGame', gameId: inputGameId }));
+        }
+
+        function makeMove(index) {
+            if (!gameId || !player) return;
+            ws.send(JSON.stringify({ action: 'makeMove', gameId, player, move: index }));
+        }
+    </script>
+</body>
+</html>

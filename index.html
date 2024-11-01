@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(45deg, #FFDEE9, #B5FFFC);
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            animation: typing 2s steps(12), blink 0.5s step-end infinite alternate;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 4px solid;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        #gameHeader {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            font-size: 20px;
+            border-radius: 5px;
+        }
+
+        #score {
+            font-weight: bold;
+        }
+
+        #gameBoard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            max-width: 300px;
+            width: 90%;
+            margin: 20px auto;
+            gap: 0;
+        }
+
+        .cell {
+            background-color: #fff;
+            border: 2px solid #333;
+            height: 100px;
+            font-size: 2em;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .winner-cell {
+            background-color: red !important;
+            color: white;
+        }
+
+        #winnerMessage {
+            display: none;
+            background-color: #ffeb3b;
+            padding: 20px;
+            border: 1px solid #333;
+            font-size: 20px;
+            text-align: center;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        #resetButton, #playOnlineButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic-Tac-Toe</h1>
+    
+    <div id="gameHeader">
+        <span id="playerNames">باسل (GPU)</span>
+        <span id="score">Score: باسل (0) - Player (0)</span>
+    </div>
+    
+    <div id="gameBoard">
+        <div class="cell" onclick="playerMove(0)"></div>
+        <div class="cell" onclick="playerMove(1)"></div>
+        <div class="cell" onclick="playerMove(2)"></div>
+        <div class="cell" onclick="playerMove(3)"></div>
+        <div class="cell" onclick="playerMove(4)"></div>
+        <div class="cell" onclick="playerMove(5)"></div>
+        <div class="cell" onclick="playerMove(6)"></div>
+        <div class="cell" onclick="playerMove(7)"></div>
+        <div class="cell" onclick="playerMove(8)"></div>
+    </div>
+    
+    <button id="resetButton" onclick="resetBoard()">Reset Board</button>
+    <button id="playOnlineButton" onclick="playOnline()">Play Online</button>
+    <div id="winnerMessage"></div>
+
+    <script>
+        let board = ["", "", "", "", "", "", "", "", ""];
+        let playerTurn = "X";
+        let playerScore = 0;
+        let gpuScore = 0;
+
+        function checkWinner() {
+            const winningPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],  // Horizontal
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],  // Vertical
+                [0, 4, 8], [2, 4, 6]              // Diagonal
+            ];
+            
+            for (let pattern of winningPatterns) {
+                const [a, b, c] = pattern;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    highlightWinningCells(pattern);
+                    return board[a];
+                }
+            }
+            return board.includes("") ? null : "Tie";
+        }
+
+        function highlightWinningCells(pattern) {
+            pattern.forEach(index => {
+                document.querySelectorAll(".cell")[index].classList.add("winner-cell");
+            });
+        }
+
+        function resetBoard() {
+            board = ["", "", "", "", "", "", "", "", ""];
+            document.querySelectorAll(".cell").forEach(cell => {
+                cell.innerText = "";
+                cell.classList.remove("winner-cell");
+            });
+            document.getElementById("winnerMessage").style.display = "none";
+            playerTurn = "X";
+        }
+
+        function endGame(winner) {
+            if (winner === "X") {
+                playerScore++;
+            } else if (winner === "O") {
+                gpuScore++;
+            }
+
+            document.getElementById("score").innerText = `Score: باسل (${gpuScore}) - Player (${playerScore})`;
+
+            if (playerScore === 3 || gpuScore === 3) {
+                document.getElementById("winnerMessage").style.display = "block";
+                document.getElementById("winnerMessage").innerText = 
+                    `${winner === "X" ? "Player" : "باسل"} wins the game! Congratulations!`;
+                
+                playerScore = 0;
+                gpuScore = 0;
+                setTimeout(() => {
+                    document.getElementById("score").innerText = "Score: باسل (0) - Player (0)";
+                    resetBoard();
+                }, 2000);
+            } else {
+                setTimeout(resetBoard, 2000);
+            }
+        }
+
+        function playerMove(index) {
+            if (board[index] || checkWinner()) return;
+            board[index] = playerTurn;
+            document.querySelectorAll(".cell")[index].innerText = playerTurn;
+            const winner = checkWinner();
+
+            if (winner) {
+                endGame(winner);
+            } else {
+                playerTurn = playerTurn === "X" ? "O" : "X";
+                if (playerTurn === "O") {
+                    setTimeout(gpuMove, 500);
+                }
+            }
+        }
+
+        function findWinningMove(symbol) {
+            const winningPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            
+            for (let pattern of winningPatterns) {
+                const [a, b, c] = pattern;
+                if (board[a] === symbol && board[a] === board[b] && !board[c]) return c;
+                if (board[a] === symbol && board[a] === board[c] && !board[b]) return b;
+                if (board[b] === symbol && board[b] === board[c] && !board[a]) return a;
+            }
+            return null;
+        }
+
+        function gpuMove() {
+            let move = findWinningMove("O") || findWinningMove("X") || board.findIndex(v => v === "");
+            if (move !== -1) {
+                board[move] = "O";
+                document.querySelectorAll(".cell")[move].innerText = "O";
+                const winner = checkWinner();
+                
+                if (winner) {
+                    endGame(winner);
+                } else {
+                    playerTurn = "X";
+                }
+            }
+        }
+
+        function playOnline() {
+            alert("Play Online feature is not available yet.");
+        }
+    </script>
+</body>
+</html>
